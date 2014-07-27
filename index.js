@@ -1,15 +1,34 @@
 var _ = require('underscore');
-var sylvester = require('sylvester');
 
 var canvas = document.getElementById('main-canvas');
 var screenCtx = canvas.getContext('2d');
+var dat = require('exports?dat!./dat.gui.js');
+var Stats = require('exports?Stats!./Stats.js');
+
+var stats = new Stats();
+stats.setMode(0); // 0: fps, 1: ms
+
+// Align top-left
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+document.body.appendChild(stats.domElement);
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-var $V = sylvester.Vector.create;
+var config = {
+  threshold: 1.0,
+  numBalls: 40,
+  pxSize: 10
+};
 
-var circles = _.range(40).map(function() {
+var gui = new dat.GUI();
+gui.add(config, 'threshold', 0.5, 2.0);
+gui.add(config, 'numBalls', 10, 100);
+gui.add(config, 'pxSize', 1, 50);
+
+var generateCircle = function() {
   return {
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
@@ -20,16 +39,51 @@ var circles = _.range(40).map(function() {
     green: Math.random() * 170 + 20,
     blue: Math.random() * 170 + 20,
   };
-});
+};
+
+var circles = [];
 
 var backBuffer = document.createElement('canvas');
 backBuffer.width = canvas.width;
 backBuffer.height = canvas.height;
 var ctx = backBuffer.getContext('2d');
 
+var mouseX = 100;
+var mouseY = 100;
+
+canvas.addEventListener('mousemove', function(evt) {
+  mouseX = evt.offsetX;
+  mouseY = evt.offsetY;
+});
+
 var draw = function() {
+  stats.begin();
+
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  while (config.numBalls > circles.length) {
+    circles.push(generateCircle());
+  }
+
+  if (circles.length > config.numBalls) {
+    circles = circles.slice(0, config.numBalls);
+  }
+
+  if (circles.length > 0) {
+    circles.pop();
+  }
+
+  circles.push({
+    x: mouseX,
+    y: mouseY,
+    vx: 0,
+    vy: 0,
+    r: 50,
+    red: 255,
+    green: 255,
+    blue: 255
+  });
 
   _.forEach(circles, function(circle, i) {
     if (circle.x + circle.r > canvas.width) {
@@ -48,9 +102,8 @@ var draw = function() {
     circle.y += circle.vy;
   });
 
-  var CHUNK_SIZE = Math.floor(canvas.height / 100);
-  for (var x = 0; x < canvas.width; x += CHUNK_SIZE) {
-    for (var y = 0; y < canvas.height; y += CHUNK_SIZE) {
+  for (var x = 0; x < canvas.width; x += config.pxSize) {
+    for (var y = 0; y < canvas.height; y += config.pxSize) {
       var sum = 0;
       var red = 0;
       var green = 0;
@@ -80,9 +133,9 @@ var draw = function() {
       green = Math.floor(green);
       blue = Math.floor(blue);
 
-      if (sum > 1.0) {
+      if (sum > config.threshold) {
         ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
-        ctx.fillRect(x, y, CHUNK_SIZE, CHUNK_SIZE);
+        ctx.fillRect(x, y, config.pxSize, config.pxSize);
       }
     }
   }
@@ -90,6 +143,7 @@ var draw = function() {
   screenCtx.drawImage(backBuffer, 0, 0);
 
   requestAnimationFrame(draw);
+  stats.end();
 };
 
 requestAnimationFrame(draw);
