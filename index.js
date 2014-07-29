@@ -20,13 +20,13 @@ canvas.height = window.innerHeight;
 var config = {
   threshold: 1.0,
   numBalls: 40,
-  pxSize: 10
+  pxSize: 2
 };
 
 var gui = new dat.GUI();
 gui.add(config, 'threshold', 0.5, 2.0);
-gui.add(config, 'numBalls', 10, 100);
-gui.add(config, 'pxSize', 1, 50);
+gui.add(config, 'numBalls', 10, 100).step(1);
+gui.add(config, 'pxSize', 1, 50).step(1);
 
 var generateCircle = function() {
   return {
@@ -35,9 +35,9 @@ var generateCircle = function() {
     vx: 20 * Math.random() - 10,
     vy: 20 * Math.random() - 10,
     r: 10 + 30 * Math.random(),
-    red: Math.random() * 170 + 20,
-    green: Math.random() * 170 + 20,
-    blue: Math.random() * 170 + 20,
+    red: Math.floor(Math.random() * 170 + 20),
+    green: Math.floor(Math.random() * 170 + 20),
+    blue: Math.floor(Math.random() * 170 + 20),
   };
 };
 
@@ -102,8 +102,15 @@ var draw = function() {
     circle.y += circle.vy;
   });
 
-  for (var x = 0; x < canvas.width; x += config.pxSize) {
-    for (var y = 0; y < canvas.height; y += config.pxSize) {
+  for (var i = 0; i < circles.length; i++) {
+    circles[i].r2 = circles[i].r * circles[i].r;
+  }
+
+  for (var y = 0; y < canvas.height; y += config.pxSize) {
+    var leftX = 0;
+    var leftColor = null;
+
+    for (var x = 0; x < canvas.width; x += config.pxSize) {
       var sum = 0;
       var red = 0;
       var green = 0;
@@ -117,8 +124,7 @@ var draw = function() {
         var dy = y - c.y;
 
         var d2 = dx * dx + dy * dy;
-
-        var contrib = c.r * c.r / (dx * dx + dy * dy);
+        var contrib = c.r2 / d2;
         sum += contrib;
 
         if (d2 < closestDist) {
@@ -129,14 +135,25 @@ var draw = function() {
         }
       }
 
-      red = Math.floor(red);
-      green = Math.floor(green);
-      blue = Math.floor(blue);
-
+      var color;
       if (sum > config.threshold) {
-        ctx.fillStyle = 'rgb(' + red + ',' + green + ',' + blue + ')';
-        ctx.fillRect(x, y, config.pxSize, config.pxSize);
+        var color = 'rgb(' + red + ',' + green + ',' + blue + ')';
+      } else {
+        var color = null;
       }
+      if (color !== leftColor) {
+        if (leftColor !== null) {
+          ctx.fillStyle = leftColor;
+          ctx.fillRect(leftX, y, x - leftX, config.pxSize);
+        }
+        leftX = x;
+        leftColor = color;
+      }
+    }
+
+    if (leftColor !== null) {
+      ctx.fillStyle = leftColor;
+      ctx.fillRect(leftX, y, canvas.width - leftX, config.pxSize);
     }
   }
 
