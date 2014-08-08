@@ -6,6 +6,7 @@ var sample = require("./sample.js");
 var threshold = require("./threshold.js");
 var classifyCells = require("./classify-cells.js");
 var cellTypeToPolyCorners = require("./cell-type-to-poly-corners.js");
+var lerp = require("./lerp.js");
 
 var canvas = document.getElementById("main-canvas");
 var screenCtx = canvas.getContext("2d");
@@ -94,10 +95,8 @@ var tickCircles = function() {
       circle.vy = +Math.abs(circle.vy);
     }
 
-    /*
     circle.x += circle.vx;
     circle.y += circle.vy;
-    */
   });
 
   for (var i = 0; i < circles.length; i++) {
@@ -141,16 +140,25 @@ var tick = function() {
 
   _.forEach(cellTypes, function(typeRow, i) {
     _.forEach(typeRow, function(cellType, j) {
+      var sumNW = cornerSums[i][j];
+      var sumNE = cornerSums[i][j+1];
+      var sumSW = cornerSums[i+1][j];
+      var sumSE = cornerSums[i+1][j+1];
+
+      var N = lerp(sumNW, sumNE, 0, 1, config.threshold) || 0.5;
+      var E = lerp(sumNE, sumSE, 0, 1, config.threshold) || 0.5;
+      var S = lerp(sumSW, sumSE, 0, 1, config.threshold) || 0.5;
+      var W = lerp(sumNW, sumSW, 0, 1, config.threshold) || 0.5;
 
       var compassCoords = {
-        "NW": [i       , j      ],
-        "N" : [i       , j + 0.5],
-        "NE": [i       , j + 1  ],
-        "W" : [i + 0.5 , j      ],
-        "E" : [i + 0.5 , j + 1  ],
-        "SW": [i + 1   , j      ],
-        "S" : [i + 1   , j + 0.5],
-        "SE": [i + 1   , j + 1  ]
+        "NW": [i    , j    ],
+        "N" : [i    , j + N],
+        "NE": [i    , j + 1],
+        "W" : [i + W, j    ],
+        "E" : [i + E, j + 1],
+        "SW": [i + 1, j    ],
+        "S" : [i + 1, j + S],
+        "SE": [i + 1, j + 1]
       };
 
       var polyCompassCorners = cellTypeToPolyCorners[cellType];
@@ -170,29 +178,6 @@ var tick = function() {
       });
       ctx.closePath();
       ctx.fill();
-
-      ctx.fillStyle = "#fff";
-      ctx.fillText(
-        cellType,
-        (j + 0.5) * config.pxSize,
-        (i + 0.5) * config.pxSize
-      );
-    });
-  });
-
-  _.forEach(cornerBools, function(boolRow, i) {
-    _.forEach(boolRow, function(cell, j) {
-        if (cell) {
-          ctx.fillStyle = "#fff";
-        } else {
-          ctx.fillStyle = "#933";
-        }
-        ctx.fillRect(
-          j * config.pxSize,
-          i * config.pxSize,
-          5,
-          5
-        );
     });
   });
 
