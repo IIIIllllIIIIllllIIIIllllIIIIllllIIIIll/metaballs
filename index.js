@@ -5,6 +5,7 @@ var Stats = require("exports?Stats!./Stats.js");
 var sample = require("./sample.js");
 var threshold = require("./threshold.js");
 var classifyCells = require("./classify-cells.js");
+var cellTypeToPolyCorners = require("./cell-type-to-poly-corners.js");
 
 var canvas = document.getElementById("main-canvas");
 var screenCtx = canvas.getContext("2d");
@@ -139,10 +140,40 @@ var tick = function() {
   var cellTypes = classifyCells(cornerBools);
 
   _.forEach(cellTypes, function(typeRow, i) {
-    _.forEach(typeRow, function(cell, j) {
+    _.forEach(typeRow, function(cellType, j) {
+
+      var compassCoords = {
+        "NW": [i       , j      ],
+        "N" : [i       , j + 0.5],
+        "NE": [i       , j + 1  ],
+        "W" : [i + 0.5 , j      ],
+        "E" : [i + 0.5 , j + 1  ],
+        "SW": [i + 1   , j      ],
+        "S" : [i + 1   , j + 0.5],
+        "SE": [i + 1   , j + 1  ]
+      };
+
+      var polyCompassCorners = cellTypeToPolyCorners[cellType];
+
+      ctx.fillStyle = "#f00";
+      ctx.beginPath();
+      _.forEach(polyCompassCorners, function(polyCorner, k) {
+        var coords = compassCoords[polyCorner];
+        var x = coords[1] * config.pxSize;
+        var y = coords[0] * config.pxSize;
+
+        if (k === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.closePath();
+      ctx.fill();
+
       ctx.fillStyle = "#fff";
       ctx.fillText(
-        cell,
+        cellType,
         (j + 0.5) * config.pxSize,
         (i + 0.5) * config.pxSize
       );
