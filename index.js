@@ -1,17 +1,21 @@
-var _ = require('underscore');
+var _ = require("underscore");
+var dat = require("exports?dat!./dat.gui.js");
+var Stats = require("exports?Stats!./Stats.js");
 
-var canvas = document.getElementById('main-canvas');
-var screenCtx = canvas.getContext('2d');
-var dat = require('exports?dat!./dat.gui.js');
-var Stats = require('exports?Stats!./Stats.js');
+var sample = require("./sample.js");
+var threshold = require("./threshold.js");
+var classifyCells = require("./classify-cells.js");
+
+var canvas = document.getElementById("main-canvas");
+var screenCtx = canvas.getContext("2d");
 
 var stats = new Stats();
 stats.setMode(0); // 0: fps, 1: ms
 
 // Align top-left
-stats.domElement.style.position = 'absolute';
-stats.domElement.style.left = '0px';
-stats.domElement.style.top = '0px';
+stats.domElement.style.position = "absolute";
+stats.domElement.style.left = "0px";
+stats.domElement.style.top = "0px";
 document.body.appendChild(stats.domElement);
 
 canvas.width = window.innerWidth;
@@ -20,15 +24,15 @@ canvas.height = window.innerHeight;
 var config = {
   threshold: 1.0,
   numBalls: 40,
-  pxSize: 5,
+  pxSize: 30,
   polarity: false
 };
 
 var gui = new dat.GUI();
-gui.add(config, 'threshold', 0.1, 1.0);
-gui.add(config, 'numBalls', 10, 100).step(1);
-gui.add(config, 'pxSize', 1, 50).step(1);
-gui.add(config, 'polarity');
+gui.add(config, "threshold", 0.1, 1.0);
+gui.add(config, "numBalls", 10, 100).step(1);
+gui.add(config, "pxSize", 1, 50).step(1);
+gui.add(config, "polarity");
 
 var generateCircle = function() {
   return {
@@ -36,34 +40,26 @@ var generateCircle = function() {
     y: Math.random() * canvas.height,
     vx: 20 * Math.random() - 10,
     vy: 20 * Math.random() - 10,
-    r: 10 + 30 * Math.random(),
-    red: Math.floor(Math.random() * 170 + 20),
-    green: Math.floor(Math.random() * 170 + 20),
-    blue: Math.floor(Math.random() * 170 + 20),
+    r: 10 + 30 * Math.random()
   };
 };
 
 var circles = [];
 
-var backBuffer = document.createElement('canvas');
+var backBuffer = document.createElement("canvas");
 backBuffer.width = canvas.width;
 backBuffer.height = canvas.height;
-var ctx = backBuffer.getContext('2d');
+var ctx = backBuffer.getContext("2d");
 
 var mouseX = 100;
 var mouseY = 100;
 
-canvas.addEventListener('mousemove', function(evt) {
+canvas.addEventListener("mousemove", function(evt) {
   mouseX = evt.offsetX;
   mouseY = evt.offsetY;
 });
 
-var draw = function() {
-  stats.begin();
-
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+var tickCircles = function() {
   while (config.numBalls > circles.length) {
     circles.push(generateCircle());
   }
@@ -81,10 +77,7 @@ var draw = function() {
     y: mouseY,
     vx: 0,
     vy: 0,
-    r: 50,
-    red: 255,
-    green: 255,
-    blue: 255
+    r: 50
   });
 
   _.forEach(circles, function(circle, i) {
@@ -100,74 +93,82 @@ var draw = function() {
       circle.vy = +Math.abs(circle.vy);
     }
 
+    /*
     circle.x += circle.vx;
     circle.y += circle.vy;
+    */
   });
 
   for (var i = 0; i < circles.length; i++) {
     circles[i].r2 = circles[i].r * circles[i].r;
   }
+};
 
-  for (var y = 0; y < canvas.height; y += config.pxSize) {
-    var leftX = 0;
-    var leftColor = null;
+var metaball = function(x, y) {
+  var sum = 0;
+  for (var i = 0; i < circles.length; i++) {
+    var c = circles[i];
+    var dx = x - c.x;
+    var dy = y - c.y;
 
-    for (var x = 0; x < canvas.width; x += config.pxSize) {
-      var sum = 0;
-      var red = 0;
-      var green = 0;
-      var blue = 0;
-
-      var closestDist = Infinity;
-
-      for (var i = 0; i < circles.length; i++) {
-        var c = circles[i];
-        var dx = x - c.x;
-        var dy = y - c.y;
-
-        var d2 = dx * dx + dy * dy;
-        var contrib = c.r2 / d2;
-
-        if (!config.polarity || i % 2 == 0) {
-          sum += contrib;
-        } else {
-          sum -= contrib;
-        }
-
-        if (d2 < closestDist) {
-          closestDist = d2;
-          red = c.red;
-          green = c.green;
-          blue = c.blue;
-        }
-      }
-
-      var color;
-      if (sum > config.threshold || sum < -config.threshold) {
-        var color = 'rgb(' + red + ',' + green + ',' + blue + ')';
-      } else {
-        var color = null;
-      }
-      if (color !== leftColor) {
-        if (leftColor !== null) {
-          ctx.fillStyle = leftColor;
-          ctx.fillRect(leftX, y, x - leftX, config.pxSize);
-        }
-        leftX = x;
-        leftColor = color;
-      }
-    }
-
-    if (leftColor !== null) {
-      ctx.fillStyle = leftColor;
-      ctx.fillRect(leftX, y, canvas.width - leftX, config.pxSize);
-    }
+    var d2 = dx * dx + dy * dy;
+    sum += c.r2 / d2;
   }
+  return sum;
+};
+
+var tick = function() {
+  stats.begin();
+
+  tickCircles();
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  var cornerSums = sample({
+    minX: 0,
+    maxX: canvas.width,
+    stepX: config.pxSize,
+    minY: 0,
+    maxY: canvas.height,
+    stepY: config.psSize,
+    fn: metaball
+  });
+
+  var cornerBools = threshold(cornerSums, config.threshold);
+  var cellTypes = classifyCells(cornerBools);
+
+  _.forEach(cellTypes, function(typeRow, i) {
+    _.forEach(typeRow, function(cell, j) {
+      ctx.fillStyle = "#fff";
+      ctx.fillText(
+        cell,
+        (j + 0.5) * config.pxSize,
+        (i + 0.5) * config.pxSize
+      );
+    });
+  });
+
+  _.forEach(cornerBools, function(boolRow, i) {
+    _.forEach(boolRow, function(cell, j) {
+        if (cell) {
+          ctx.fillStyle = "#fff";
+        } else {
+          ctx.fillStyle = "#933";
+        }
+        ctx.fillRect(
+          j * config.pxSize,
+          i * config.pxSize,
+          5,
+          5
+        );
+    });
+  });
 
   screenCtx.drawImage(backBuffer, 0, 0);
 
-  requestAnimationFrame(draw);
+  requestAnimationFrame(tick);
   stats.end();
 };
 
-requestAnimationFrame(draw);
+requestAnimationFrame(tick);
