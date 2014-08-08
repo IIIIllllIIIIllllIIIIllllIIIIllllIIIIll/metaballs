@@ -20,13 +20,15 @@ canvas.height = window.innerHeight;
 var config = {
   threshold: 1.0,
   numBalls: 40,
-  pxSize: 2
+  pxSize: 5,
+  polarity: false
 };
 
 var gui = new dat.GUI();
-gui.add(config, 'threshold', 0.5, 2.0);
+gui.add(config, 'threshold', 0.1, 1.0);
 gui.add(config, 'numBalls', 10, 100).step(1);
 gui.add(config, 'pxSize', 1, 50).step(1);
+gui.add(config, 'polarity');
 
 var generateCircle = function() {
   return {
@@ -125,7 +127,12 @@ var draw = function() {
 
         var d2 = dx * dx + dy * dy;
         var contrib = c.r2 / d2;
-        sum += contrib;
+
+        if (!config.polarity || i % 2 == 0) {
+          sum += contrib;
+        } else {
+          sum -= contrib;
+        }
 
         if (d2 < closestDist) {
           closestDist = d2;
@@ -136,7 +143,7 @@ var draw = function() {
       }
 
       var color;
-      if (sum > config.threshold) {
+      if (sum > config.threshold || sum < -config.threshold) {
         var color = 'rgb(' + red + ',' + green + ',' + blue + ')';
       } else {
         var color = null;
