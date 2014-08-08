@@ -30,7 +30,7 @@ var config = {
 };
 
 var gui = new dat.GUI();
-gui.add(config, "threshold", 0.1, 1.0);
+gui.add(config, "threshold", 0.1, 2.0);
 gui.add(config, "numBalls", 10, 100).step(1);
 gui.add(config, "pxSize", 1, 50).step(1);
 
@@ -38,8 +38,8 @@ var generateCircle = function() {
   return {
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
-    vx: 10 * Math.random() - 5,
-    vy: 10 * Math.random() - 5,
+    vx: 2 * Math.random() - 1,
+    vy: 2 * Math.random() - 1,
     r: 10 + 30 * Math.random()
   };
 };
@@ -131,8 +131,7 @@ var tick = function() {
   var cornerBools = threshold(cornerSums, config.threshold);
   var cellTypes = classifyCells(cornerBools);
 
-  ctx.fillStyle = "white";
-  ctx.strokeStyle = "white";
+  ctx.strokeStyle = "green";
 
   for (var i = 0; i < cellTypes.length; i++) {
     for (var j = 0; j < cellTypes[i].length; j++) {
@@ -148,32 +147,41 @@ var tick = function() {
       var W = (cellType & 1) == (cellType & 8) ? 0.5 : lerp(sumNW, sumSW, 0, 1, config.threshold);
 
       var compassCoords = {
-        "NW": [i    , j    ],
         "N" : [i    , j + N],
-        "NE": [i    , j + 1],
         "W" : [i + W, j    ],
         "E" : [i + E, j + 1],
-        "SW": [i + 1, j    ],
         "S" : [i + 1, j + S],
-        "SE": [i + 1, j + 1]
       };
 
       var polyCompassCorners = cellTypeToPolyCorners[cellType];
 
-      ctx.beginPath();
-      for (var k = 0; k < polyCompassCorners.length; k++) {
-        var coords = compassCoords[polyCompassCorners[k]];
-        var x = coords[1] * config.pxSize;
-        var y = coords[0] * config.pxSize;
+      var drawLine = function(a, b) {
+        var x0 = a[1] * config.pxSize;
+        var y0 = a[0] * config.pxSize;
+        var x1 = b[1] * config.pxSize;
+        var y1 = b[0] * config.pxSize;
 
-        if (k === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      };
-      ctx.closePath();
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.stroke();
+      }
+
+      if (polyCompassCorners.length === 2) {
+        drawLine(
+          compassCoords[polyCompassCorners[0]],
+          compassCoords[polyCompassCorners[1]]
+        );
+      } else if (polyCompassCorners.length === 4) {
+        drawLine(
+          compassCoords[polyCompassCorners[0]],
+          compassCoords[polyCompassCorners[1]]
+        );
+        drawLine(
+          compassCoords[polyCompassCorners[2]],
+          compassCoords[polyCompassCorners[3]]
+        );
+      }
     };
   };
 
