@@ -9,7 +9,7 @@ var cellTypeToPolyCorners = require("./cell-type-to-poly-corners.js");
 var lerp = require("./lerp.js");
 
 var canvas = document.getElementById("main-canvas");
-var screenCtx = canvas.getContext("2d");
+var ctx = canvas.getContext("2d");
 
 var stats = new Stats();
 stats.setMode(0); // 0: fps, 1: ms
@@ -26,32 +26,25 @@ canvas.height = window.innerHeight;
 var config = {
   threshold: 1.0,
   numBalls: 40,
-  pxSize: 30,
-  polarity: false
+  pxSize: 5
 };
 
 var gui = new dat.GUI();
 gui.add(config, "threshold", 0.1, 1.0);
 gui.add(config, "numBalls", 10, 100).step(1);
 gui.add(config, "pxSize", 1, 50).step(1);
-gui.add(config, "polarity");
 
 var generateCircle = function() {
   return {
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
-    vx: 20 * Math.random() - 10,
-    vy: 20 * Math.random() - 10,
+    vx: 10 * Math.random() - 5,
+    vy: 10 * Math.random() - 5,
     r: 10 + 30 * Math.random()
   };
 };
 
 var circles = [];
-
-var backBuffer = document.createElement("canvas");
-backBuffer.width = canvas.width;
-backBuffer.height = canvas.height;
-var ctx = backBuffer.getContext("2d");
 
 var mouseX = 100;
 var mouseY = 100;
@@ -138,17 +131,21 @@ var tick = function() {
   var cornerBools = threshold(cornerSums, config.threshold);
   var cellTypes = classifyCells(cornerBools);
 
-  _.forEach(cellTypes, function(typeRow, i) {
-    _.forEach(typeRow, function(cellType, j) {
+  ctx.fillStyle = "white";
+  ctx.strokeStyle = "white";
+
+  for (var i = 0; i < cellTypes.length; i++) {
+    for (var j = 0; j < cellTypes[i].length; j++) {
+      var cellType = cellTypes[i][j];
       var sumNW = cornerSums[i][j];
       var sumNE = cornerSums[i][j+1];
       var sumSW = cornerSums[i+1][j];
       var sumSE = cornerSums[i+1][j+1];
 
-      var N = lerp(sumNW, sumNE, 0, 1, config.threshold) || 0.5;
-      var E = lerp(sumNE, sumSE, 0, 1, config.threshold) || 0.5;
-      var S = lerp(sumSW, sumSE, 0, 1, config.threshold) || 0.5;
-      var W = lerp(sumNW, sumSW, 0, 1, config.threshold) || 0.5;
+      var N = (cellType & 4) == (cellType & 8) ? 0.5 : lerp(sumNW, sumNE, 0, 1, config.threshold);
+      var E = (cellType & 2) == (cellType & 4) ? 0.5 : lerp(sumNE, sumSE, 0, 1, config.threshold);
+      var S = (cellType & 1) == (cellType & 2) ? 0.5 : lerp(sumSW, sumSE, 0, 1, config.threshold);
+      var W = (cellType & 1) == (cellType & 8) ? 0.5 : lerp(sumNW, sumSW, 0, 1, config.threshold);
 
       var compassCoords = {
         "NW": [i    , j    ],
@@ -163,10 +160,9 @@ var tick = function() {
 
       var polyCompassCorners = cellTypeToPolyCorners[cellType];
 
-      ctx.fillStyle = "#f00";
       ctx.beginPath();
-      _.forEach(polyCompassCorners, function(polyCorner, k) {
-        var coords = compassCoords[polyCorner];
+      for (var k = 0; k < polyCompassCorners.length; k++) {
+        var coords = compassCoords[polyCompassCorners[k]];
         var x = coords[1] * config.pxSize;
         var y = coords[0] * config.pxSize;
 
@@ -175,13 +171,11 @@ var tick = function() {
         } else {
           ctx.lineTo(x, y);
         }
-      });
+      };
       ctx.closePath();
-      ctx.fill();
-    });
-  });
-
-  screenCtx.drawImage(backBuffer, 0, 0);
+      ctx.stroke();
+    };
+  };
 
   requestAnimationFrame(tick);
   stats.end();
