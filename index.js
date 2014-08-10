@@ -1,18 +1,24 @@
 var _ = require("underscore");
 
+var sample = require("./sample.js");
+
 var MarchingSquaresContour = require("./marching-squares-contour.js");
+var MarchingSquaresClassification = require("./marching-squares-classification.js");
 
 
 var config = {
   threshold: 1.0,
-  numBalls: 40,
-  pxSize: 5
+  numBalls: 20,
+  pxSize: 20
 };
+
+var width = window.innerWidth;
+var height = 200;
 
 var generateCircle = function() {
   return {
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
+    x: Math.random() * width,
+    y: Math.random() * height,
     vx: 2 * Math.random() - 1,
     vy: 2 * Math.random() - 1,
     r: 10 + 30 * Math.random()
@@ -31,13 +37,13 @@ var tickCircles = function() {
   }
 
   _.forEach(circles, function(circle, i) {
-    if (circle.x + circle.r > canvas.width) {
+    if (circle.x + circle.r > width) {
       circle.vx = -Math.abs(circle.vx);
     } else if (circle.x - circle.r < 0) {
       circle.vx = +Math.abs(circle.vx);
     }
 
-    if (circle.y + circle.r > canvas.height) {
+    if (circle.y + circle.r > height) {
       circle.vy = -Math.abs(circle.vy);
     } else if (circle.y - circle.r < 0) {
       circle.vy = +Math.abs(circle.vy);
@@ -65,19 +71,46 @@ var metaball = function(x, y) {
   return sum;
 };
 
-var canvas = document.getElementById("main-canvas");
-canvas.width = window.innerWidth;
+var setupCanvas = function(id) {
+  var canvas = document.getElementById(id);
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+};
 
 var contour = new MarchingSquaresContour({
-  canvas: canvas,
-  fn: metaball,
+  canvas: setupCanvas("ms-contour"),
+  config: config,
+  lerp: false
+});
+
+var contourLerp = new MarchingSquaresContour({
+  canvas: setupCanvas("ms-contour-lerp"),
+  config: config,
+  lerp: true
+});
+
+var classification = new MarchingSquaresClassification({
+  canvas: setupCanvas("ms-classification-corners"),
   config: config
 });
 
 var tick = function() {
   tickCircles();
 
-  contour.tick();
+  var cornerSums = sample({
+    minX: 0,
+    maxX: width,
+    stepX: config.pxSize,
+    minY: 0,
+    maxY: height,
+    stepY: config.pxSize,
+    fn: metaball
+  });
+
+  contour.tick(cornerSums);
+  contourLerp.tick(cornerSums);
+  classification.tick(cornerSums);
 
   requestAnimationFrame(tick);
 };

@@ -5,32 +5,21 @@
 var cellTypeToPolyCorners = require("./cell-type-to-poly-corners.js");
 var classifyCells = require("./classify-cells.js");
 var lerp = require("./lerp.js");
-var sample = require("./sample.js");
 var threshold = require("./threshold.js");
 
 var MarchingSquaresContour = function(options) {
   this.canvas = options.canvas;
-  this.fn = options.fn;
   this.config = options.config;
+  this.lerp = options.lerp;
 
   this.ctx = this.canvas.getContext("2d");
 };
 
-MarchingSquaresContour.prototype.tick = function() {
+MarchingSquaresContour.prototype.tick = function(samples) {
   this.ctx.fillStyle = "black";
   this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-  var cornerSums = sample({
-    minX: 0,
-    maxX: this.canvas.width,
-    stepX: this.config.pxSize,
-    minY: 0,
-    maxY: this.canvas.height,
-    stepY: this.config.psSize,
-    fn: this.fn
-  });
-
-  var cornerBools = threshold(cornerSums, this.config.threshold);
+  var cornerBools = threshold(samples, this.config.threshold);
   var cellTypes = classifyCells(cornerBools);
 
   this.ctx.strokeStyle = "green";
@@ -38,15 +27,15 @@ MarchingSquaresContour.prototype.tick = function() {
   for (var i = 0; i < cellTypes.length; i++) {
     for (var j = 0; j < cellTypes[i].length; j++) {
       var cellType = cellTypes[i][j];
-      var sumNW = cornerSums[i][j];
-      var sumNE = cornerSums[i][j+1];
-      var sumSW = cornerSums[i+1][j];
-      var sumSE = cornerSums[i+1][j+1];
+      var sumNW = samples[i][j];
+      var sumNE = samples[i][j+1];
+      var sumSW = samples[i+1][j];
+      var sumSE = samples[i+1][j+1];
 
-      var N = (cellType & 4) == (cellType & 8) ? 0.5 : lerp(sumNW, sumNE, 0, 1, this.config.threshold);
-      var E = (cellType & 2) == (cellType & 4) ? 0.5 : lerp(sumNE, sumSE, 0, 1, this.config.threshold);
-      var S = (cellType & 1) == (cellType & 2) ? 0.5 : lerp(sumSW, sumSE, 0, 1, this.config.threshold);
-      var W = (cellType & 1) == (cellType & 8) ? 0.5 : lerp(sumNW, sumSW, 0, 1, this.config.threshold);
+      var N = !this.lerp || (cellType & 4) == (cellType & 8) ? 0.5 : lerp(sumNW, sumNE, 0, 1, this.config.threshold);
+      var E = !this.lerp || (cellType & 2) == (cellType & 4) ? 0.5 : lerp(sumNE, sumSE, 0, 1, this.config.threshold);
+      var S = !this.lerp || (cellType & 1) == (cellType & 2) ? 0.5 : lerp(sumSW, sumSE, 0, 1, this.config.threshold);
+      var W = !this.lerp || (cellType & 1) == (cellType & 8) ? 0.5 : lerp(sumNW, sumSW, 0, 1, this.config.threshold);
 
       var compassCoords = {
         "N" : [i    , j + N],
