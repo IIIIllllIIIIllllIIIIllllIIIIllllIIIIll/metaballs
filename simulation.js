@@ -9,7 +9,7 @@ var threshold = require("./threshold.js");
 var lerp = require("./lerp.js");
 
 var Simulation = function(options) {
-  this.draw = options.draw
+  this.draw = options.draw;
 
   if (!this.draw) {
     throw new Error("Must provide a draw function");
@@ -65,13 +65,13 @@ Simulation.prototype.tickCircles = function() {
   for (var i = 0; i < this._circles.length; i++) {
     var circle = this._circles[i];
 
-    if (circle.x + circle.r > this.canvas.width) {
+    if (circle.x + circle.r > this._canvas.width) {
       circle.vx = -Math.abs(circle.vx);
     } else if (circle.x - circle.r < 0) {
       circle.vx = +Math.abs(circle.vx);
     }
 
-    if (circle.y + circle.r > this.canvas.height) {
+    if (circle.y + circle.r > this._canvas.height) {
       circle.vy = -Math.abs(circle.vy);
     } else if (circle.y - circle.r < 0) {
       circle.vy = +Math.abs(circle.vy);
@@ -296,10 +296,10 @@ Simulation.prototype.drawSmoothContours = function() {
       var SE = this._samples[i+1][j+1];
 
       // The offset from top or left that the line intersection should be.
-      var N = (cellType & 4) == (cellType & 8) ? 0.5 : lerp(NW, NE, 0, 1, this._threshold);
-      var E = (cellType & 2) == (cellType & 4) ? 0.5 : lerp(NE, SE, 0, 1, this._threshold);
-      var S = (cellType & 1) == (cellType & 2) ? 0.5 : lerp(SW, SE, 0, 1, this._threshold);
-      var W = (cellType & 1) == (cellType & 8) ? 0.5 : lerp(NW, SW, 0, 1, this._threshold);
+      var N = (cellType & 4) === (cellType & 8) ? 0.5 : lerp(NW, NE, 0, 1, this._threshold);
+      var E = (cellType & 2) === (cellType & 4) ? 0.5 : lerp(NE, SE, 0, 1, this._threshold);
+      var S = (cellType & 1) === (cellType & 2) ? 0.5 : lerp(SW, SE, 0, 1, this._threshold);
+      var W = (cellType & 1) === (cellType & 8) ? 0.5 : lerp(NW, SW, 0, 1, this._threshold);
 
       var compassCoords = {
         "N" : [i    , j + N],

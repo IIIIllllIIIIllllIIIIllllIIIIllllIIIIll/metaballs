@@ -42,7 +42,6 @@ simulation.clone({
   draw: function() {
     this.drawBg();
     this.drawThresholdedCells();
-    this.drawCircles('#900');
   }
 }).draw();
 
