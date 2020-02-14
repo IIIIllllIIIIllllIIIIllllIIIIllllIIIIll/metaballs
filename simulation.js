@@ -46,6 +46,20 @@ Simulation.prototype.generateCircle = function() {
   return circle;
 };
 
+Simulation.prototype.generateDiamonds = function() {
+  var diamond = {
+    x: Math.random() * this._canvas.width,
+    y: Math.random() * this._canvas.height,
+    vx: 2 * Math.random() - 1,
+    vy: 2 * Math.random() - 1,
+    r: 30 + 30 * Math.random()
+  };
+
+  diamond.r2 = diamond.r * diamond.r;
+
+  return diamond;
+};
+
 Simulation.prototype.tickCircles = function() {
   for (var i = 0; i < this._circles.length; i++) {
     var circle = this._circles[i];
@@ -101,7 +115,7 @@ Simulation.prototype.drawBg = function() {
  * Draw the outlines of the circles.
  */
 Simulation.prototype.drawCircles = function(color) {
-  this._ctx.strokeStyle = color || 'green';
+  this._ctx.strokeStyle = color || 'red';
   for (var i = 0; i < this._circles.length; i++) {
     var c = this._circles[i];
     this._ctx.beginPath();
