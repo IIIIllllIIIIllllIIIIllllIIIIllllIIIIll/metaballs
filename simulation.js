@@ -32,21 +32,6 @@ var Simulation = function(options) {
   this.recalculate();
 };
 
-/**
- * Returns a shallow clone, with properties passed overriding the properties of
- * the instance being cloned.
- */
-Simulation.prototype.clone = function(options) {
-  var clone = new Simulation({
-    draw: options.draw || this.draw,
-    canvas: options.canvas || this._canvas,
-    cellSize: options.cellSize || this._cellSize,
-    threshold: options.threshold || this._threshold,
-    circles: this._circles
-  });
-  return clone;
-};
-
 Simulation.prototype.generateCircle = function() {
   var circle = {
     x: Math.random() * this._canvas.width,
