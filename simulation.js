@@ -1,12 +1,14 @@
 /**
  * Simulation to display metaballs based on bouncing circles.
  */
-var cellTypeToPolyCorners = require("./cell-type-to-poly-corners.js");
-var classifyCells = require("./classify-cells.js");
-var metaball = require("./metaball.js");
-var sample = require("./sample.js");
-var threshold = require("./threshold.js");
-var lerp = require("./lerp.js");
+const cellTypeToPolyCorners = require("./cell-type-to-poly-corners.js");
+const classifyCells = require("./classify-cells.js");
+const metaball = require("./metaball.js");
+const sample = require("./sample.js");
+const threshold = require("./threshold.js");
+const lerp = require("./lerp.js");
+
+const Circle = require("./Circle.js");
 
 var Simulation = function(options) {
   this.draw = options.draw;
@@ -25,39 +27,12 @@ var Simulation = function(options) {
   } else {
     this._circles = [];
     for (var i = 0; i < options.numCircles; i++) {
-      this._circles.push(this.generateCircle());
+      const c = Circle.random(this._canvas.width, this._canvas.height);
+      this._circles.push(c);
     }
   }
 
   this.recalculate();
-};
-
-Simulation.prototype.generateCircle = function() {
-  var circle = {
-    x: Math.random() * this._canvas.width,
-    y: Math.random() * this._canvas.height,
-    vx: 2 * Math.random() - 1,
-    vy: 2 * Math.random() - 1,
-    r: 30 + 30 * Math.random()
-  };
-
-  circle.r2 = circle.r * circle.r;
-
-  return circle;
-};
-
-Simulation.prototype.generateDiamonds = function() {
-  var diamond = {
-    x: Math.random() * this._canvas.width,
-    y: Math.random() * this._canvas.height,
-    vx: 2 * Math.random() - 1,
-    vy: 2 * Math.random() - 1,
-    r: 30 + 30 * Math.random()
-  };
-
-  diamond.r2 = diamond.r * diamond.r;
-
-  return diamond;
 };
 
 Simulation.prototype.tickCircles = function() {
@@ -119,7 +94,7 @@ Simulation.prototype.drawCircles = function(color) {
   for (var i = 0; i < this._circles.length; i++) {
     var c = this._circles[i];
     this._ctx.beginPath();
-    this._ctx.arc(c.x, c.y, c.r, 0, 2 * Math.PI);
+    this._ctx.arc(c.x, c.y, Math.sqrt(c.r2), 0, 2 * Math.PI);
     this._ctx.stroke();
   }
 };
