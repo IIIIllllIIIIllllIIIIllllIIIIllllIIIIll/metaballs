@@ -149,7 +149,7 @@ Simulation.prototype.drawCornerSamples = function() {
  * threshold in different colors.
  */
 Simulation.prototype.drawThresholdedCells = function() {
-  this._ctx.fillStyle = 'green';
+  this._ctx.fillStyle = 'grey';
   for (var i = 0; i < this._thresholdedSamples.length; i++) {
     for (var j = 0; j < this._thresholdedSamples[i].length; j++) {
       var thresholdedSample = this._thresholdedSamples[i][j];
@@ -282,8 +282,8 @@ Simulation.prototype.draw45DegContours = function() {
   }
 };
 
-Simulation.prototype.drawSmoothContours = function() {
-  this._ctx.strokeStyle = "green";
+Simulation.prototype.drawSmoothContours = function(color) {
+  this._ctx.strokeStyle = color || 'blue';
   for (var i = 0; i < this._cellTypes.length; i++) {
     for (var j = 0; j < this._cellTypes[i].length; j++) {
       var cellType = this._cellTypes[i][j];
