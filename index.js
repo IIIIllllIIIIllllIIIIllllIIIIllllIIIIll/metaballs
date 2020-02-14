@@ -105,3 +105,6 @@ simulation.clone({
     this.drawSmoothContours();
   }
 }).draw();
+
+
+window.simulation = simulation;

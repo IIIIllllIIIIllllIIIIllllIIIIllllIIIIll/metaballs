@@ -1,2 +1,4 @@
 node_modules
 metaball.bundle.js
+dist
+package-lock.json
