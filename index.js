@@ -15,7 +15,7 @@ var newCanvas = function() {
 
 var simulation = new Simulation({
   canvas: newCanvas(),
-  cellSize: 10,
+  cellSize: 5,
   numCircles: 10,
   draw: function() {
     this.drawBg();

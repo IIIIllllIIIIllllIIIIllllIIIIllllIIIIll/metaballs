@@ -9,6 +9,12 @@ const threshold = require("./threshold.js");
 const lerp = require("./lerp.js");
 
 const Circle = require("./Circle.js");
+const Diamond = require("./Diamond.js");
+
+const choose = function(choices) {
+  var index = Math.floor(Math.random() * choices.length);
+  return choices[index];
+}
 
 var Simulation = function(options) {
   this.draw = options.draw;
@@ -27,7 +33,8 @@ var Simulation = function(options) {
   } else {
     this._circles = [];
     for (var i = 0; i < options.numCircles; i++) {
-      const c = Circle.random(this._canvas.width, this._canvas.height);
+
+      const c = (choose([Circle, Diamond])).random(this._canvas.width, this._canvas.height);
       this._circles.push(c);
     }
   }
@@ -93,9 +100,7 @@ Simulation.prototype.drawCircles = function(color) {
   this._ctx.strokeStyle = color || 'red';
   for (var i = 0; i < this._circles.length; i++) {
     var c = this._circles[i];
-    this._ctx.beginPath();
-    this._ctx.arc(c.x, c.y, Math.sqrt(c.r2), 0, 2 * Math.PI);
-    this._ctx.stroke();
+    c.draw(this._ctx);
   }
 };
 

@@ -21,6 +21,11 @@ class Circle {
     var d2 = dx * dx + dy * dy;
     return this.r2 / d2;
   }
+  draw(ctx) {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.sqrt(this.r2), 0, 2 * Math.PI);
+    ctx.stroke();
+  }
   static random(width, height) {
     var circle = {
       x: Math.random() * width,
