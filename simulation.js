@@ -11,6 +11,7 @@ const lerp = require("./lerp.js");
 const Circle = require("./Circle.js");
 const Diamond = require("./Diamond.js");
 const Ellipse = require("./Ellipse.js");
+const Segment = require("./Segment.js");
 
 const choose = function(choices) {
   var index = Math.floor(Math.random() * choices.length);
@@ -35,7 +36,7 @@ var Simulation = function(options) {
     this._circles = [];
     for (var i = 0; i < options.numCircles; i++) {
 
-      const c = (choose([Ellipse, Diamond])).random(this._canvas.width, this._canvas.height);
+      const c = (choose([Segment])).random(this._canvas.width, this._canvas.height);
       this._circles.push(c);
     }
   }
