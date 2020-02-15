@@ -20,7 +20,7 @@ var simulation = new Simulation({
   draw: function() {
     this.drawBg();
     // this.drawThresholdedCells();
-    this.drawCircles('red');
+    this.drawCircles('grey');
     this.drawSmoothContours('white');
   }
 });

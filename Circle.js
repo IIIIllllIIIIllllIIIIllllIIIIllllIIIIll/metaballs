@@ -10,14 +10,6 @@ class Circle {
     var dx = x - this.x;
     var dy = y - this.y;
 
-      /*
-      diamond
-      
-  var d2 = Math.abs(dx) + Math.abs(dy);
-  d2 *= d2
-  return this.r2 / d2;
-      */
-
     var d2 = dx * dx + dy * dy;
     return this.r2 / d2;
   }
