@@ -1,76 +1,34 @@
-const add = function(v, w) {
-  return {
-    x: v.x + w.x,
-    y: v.y + w.y
-  }
-}
-
-const sub = function(v, w) {
-  return {
-    x: v.x - w.x,
-    y: v.y - w.y
-  }
-}
-
-const dot = function(v, w) {
-  return v.x*w.x + v.y*w.y;
-}
-
-const mul = function(k, v) {
-  return {
-    x: k*v.x,
-    y: k*v.y
-  }
-}
-
-const distance2 = function(v, w) {
-  var x2 = v.x - w.x;
-  x2 *= x2;
-  var y2 = v.y - w.y;
-  y2 *= y2;
-  return x2 + y2;
-}
-
-const distance = function(v, w) {
-  return Math.sqrt(distance2(v, w));
-}
+const { add, sub, dot, mul, distance2, distance } = require('./util.js');
 
 class Segment {
-    constructor(v, w, r) {
-      this.v = v;
-      this.w = w;
-      this.r = r;
+    constructor(points, radii) {
+      this.points = points;
+      this.radii = radii;
     }
-    field(x, y, debug) {
-      const l2 = distance2(this.v, this.w);
+    field(x, y) {
+
+      const [v, w] = this.points;
+      const [r1, r2] = this.radii;
+
+      const l2 = distance2(v, w);
       const p = {x, y};
 
-      if (l2 == 0) return distance(p, this.v);
-
-      var t = dot(sub(p, this.v), sub(this.w, this.v)) / l2;
+      var t = dot(sub(p, v), sub(w, v)) / l2;
       t = Math.max(0, Math.min(1, t));
 
-      const proj = add(this.v, mul(t, sub(this.w, this.v)));
-
-      const r1 = this.r * 0.4;
-      const r2 = this.r * 1.5;
+      const proj = add(v, mul(t, sub(w, v)));
 
       const r = t * r1 + (1-t)*r2;
-
-      if (debug) {
-        console.log(proj);
-        console.log(distance(p, proj));
-        console.log( r * r / distance(p, proj));
-      }
-
 
       return r * r / distance2(p, proj);
     }
     draw(ctx) {
 
+      const [v, w] = this.points;
+
       ctx.beginPath();
-      ctx.moveTo(this.v.x, this.v.y);
-      ctx.lineTo(this.w.x, this.w.y);
+      ctx.moveTo(v.x, v.y);
+      ctx.lineTo(w.x, w.y);
       ctx.stroke();
     }
     tick(_ctx) {}
@@ -84,7 +42,7 @@ class Segment {
         y: Math.random() * height,
       };
         
-      return new Segment(v, w, 15 + 15 * Math.random());
+      return new Segment([v, w], 15 + 15 * Math.random(), 15 + 15 * Math.random());
     }
   }
   

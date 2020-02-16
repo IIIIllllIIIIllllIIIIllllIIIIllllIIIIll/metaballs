@@ -39,7 +39,7 @@ var Simulation = function(options) {
       const c = (choose([Ellipse])).random(this._canvas.width, this._canvas.height);
       this._circles.push(c);
     }
-    this._circles.push(Segment.random(this._canvas.width, this._canvas.height));
+    // this._circles.push(Segment.random(this._canvas.width, this._canvas.height));
   }
 
   this.recalculate();
