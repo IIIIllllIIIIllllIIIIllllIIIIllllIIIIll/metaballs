@@ -16,7 +16,7 @@ var newCanvas = function() {
 var simulation = new Simulation({
   canvas: newCanvas(),
   cellSize: 5,
-  numCircles: 1,
+  numCircles: 5,
   draw: function() {
     this.drawBg();
     // this.drawThresholdedCells();
@@ -27,6 +27,9 @@ var simulation = new Simulation({
 
 simulation.draw();
 
-console.log("f(0, 0)=", simulation._circles[0].field(0, 0, true));
+setInterval(function() {
+  simulation.tick();
+  simulation.draw();
+}, 10);
 
 window.simulation = simulation;

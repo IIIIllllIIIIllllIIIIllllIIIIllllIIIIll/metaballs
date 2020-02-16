@@ -1,8 +1,8 @@
 class Circle {
-  constructor(x, y, r2, vx, vy) {
+  constructor(x, y, r, vx, vy) {
     this.x = x;
     this.y = y;
-    this.r2 = r2;
+    this.r = r;
     this.vx = vx;
     this.vy = vy;
   }
@@ -11,12 +11,28 @@ class Circle {
     var dy = y - this.y;
 
     var d2 = dx * dx + dy * dy;
-    return this.r2 / d2;
+    return this.r * this.r / d2;
   }
   draw(ctx) {
     ctx.beginPath();
-    ctx.arc(this.x, this.y, Math.sqrt(this.r2), 0, 2 * Math.PI);
+    ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI);
     ctx.stroke();
+  }
+  tick(canvas) {
+    if (this.x + this.r > canvas.width) {
+      this.vx = -Math.abs(this.vx);
+    } else if (this.x - this.r < 0) {
+      this.vx = +Math.abs(this.vx);
+    }
+
+    if (this.y + this.r > canvas.height) {
+      this.vy = -Math.abs(this.vy);
+    } else if (this.y - this.r < 0) {
+      this.vy = +Math.abs(this.vy);
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
   }
   static random(width, height) {
     var circle = {
@@ -26,10 +42,8 @@ class Circle {
       vy: 2 * Math.random() - 1,
       r: 30 + 30 * Math.random()
     };
-  
-    circle.r2 = circle.r * circle.r;
-  
-    return new Circle(circle.x, circle.y, circle.r2, circle.vx, circle.vy);
+    
+    return new Circle(circle.x, circle.y, circle.r, circle.vx, circle.vy);
   }
 }
 

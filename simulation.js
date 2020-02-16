@@ -36,9 +36,10 @@ var Simulation = function(options) {
     this._circles = [];
     for (var i = 0; i < options.numCircles; i++) {
 
-      const c = (choose([Segment])).random(this._canvas.width, this._canvas.height);
+      const c = (choose([Ellipse])).random(this._canvas.width, this._canvas.height);
       this._circles.push(c);
     }
+    this._circles.push(Segment.random(this._canvas.width, this._canvas.height));
   }
 
   this.recalculate();
@@ -46,22 +47,7 @@ var Simulation = function(options) {
 
 Simulation.prototype.tickCircles = function() {
   for (var i = 0; i < this._circles.length; i++) {
-    var circle = this._circles[i];
-
-    if (circle.x + circle.r > this._canvas.width) {
-      circle.vx = -Math.abs(circle.vx);
-    } else if (circle.x - circle.r < 0) {
-      circle.vx = +Math.abs(circle.vx);
-    }
-
-    if (circle.y + circle.r > this._canvas.height) {
-      circle.vy = -Math.abs(circle.vy);
-    } else if (circle.y - circle.r < 0) {
-      circle.vy = +Math.abs(circle.vy);
-    }
-
-    circle.x += circle.vx;
-    circle.y += circle.vy;
+    this._circles[i].tick(this._canvas);
   }
 };
 

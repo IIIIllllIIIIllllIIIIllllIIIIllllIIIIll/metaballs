@@ -73,6 +73,7 @@ class Segment {
       ctx.lineTo(this.w.x, this.w.y);
       ctx.stroke();
     }
+    tick(_ctx) {}
     static random(width, height) {
       const v = {
         x: Math.random() * width,

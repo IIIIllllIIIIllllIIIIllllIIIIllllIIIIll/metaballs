@@ -4,7 +4,7 @@ class Ellipse {
     this.y = y;
     this.a = a;
     this.b = b;
-    this.theta = 0;
+    this.theta = theta;
     this.vx = vx;
     this.vy = vy;
   }
@@ -24,6 +24,22 @@ class Ellipse {
     ctx.beginPath();
     ctx.ellipse(this.x, this.y, this.a, this.b, this.theta, 0, 2*Math.PI);
     ctx.stroke();
+  }
+  tick(canvas) {
+    if (this.x > canvas.width) {
+      this.vx = -Math.abs(this.vx);
+    } else if (this.x < 0) {
+      this.vx = +Math.abs(this.vx);
+    }
+
+    if (this.y > canvas.height) {
+      this.vy = -Math.abs(this.vy);
+    } else if (this.y < 0) {
+      this.vy = +Math.abs(this.vy);
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
   }
   static random(width, height) {
     var e = {
