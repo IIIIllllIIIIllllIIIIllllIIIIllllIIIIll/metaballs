@@ -9,14 +9,14 @@ const distance2_point_segment = function(p, v, w) {
   const proj = add(v, mul(t, sub(w, v)));
 
   return {
-    t,
+    t: 1-t,
     'distance2': distance2(p, proj)
   }
 }
 
 const distance2_point_polysegment = function(p, vertices) {
   var candidates = [];
-  for (var i=0; i<this.points.length - 1; i++) {
+  for (var i=0; i<vertices.length - 1; i++) {
     candidates.push(distance2_point_segment(p, vertices[i], vertices[i+1]));
   }
   var min_idx = 0;
@@ -25,7 +25,7 @@ const distance2_point_polysegment = function(p, vertices) {
       min_idx = i;
     }
   }
-  return candidates[min_idx];
+  return {...candidates[min_idx], i: min_idx };
 }
 
 class Segment {
@@ -36,11 +36,11 @@ class Segment {
     field(x, y) {
 
       const p = {x, y};
-      
-      const [v, w] = this.points;
-      const [r1, r2] = this.radii;
 
-      const {t, 'distance2': d2} = distance2_point_segment(p, v, w);
+      const {i, t, 'distance2': d2} = distance2_point_polysegment(p, this.points);
+
+      const r1 = this.radii[i];
+      const r2 = this.radii[i+1];
 
       const r = t * r1 + (1-t)*r2;
 

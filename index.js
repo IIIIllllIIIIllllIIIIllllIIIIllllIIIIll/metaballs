@@ -2,6 +2,7 @@ var _ = require("underscore");
 
 var Simulation = require("./simulation.js");
 var Ellipse = require("./Ellipse.js");
+var Circle = require("./Circle.js");
 var Segment = require("./Segment.js");
 
 
@@ -18,7 +19,7 @@ var newCanvas = function() {
 
 var simulation = new Simulation({
   canvas: newCanvas(),
-  cellSize: 5,
+  cellSize: 1,
   numCircles: 0,
   draw: function() {
     this.drawBg();
@@ -30,17 +31,25 @@ var simulation = new Simulation({
 
 // l'oie est la
 simulation._circles.push(new Ellipse(
-  300, 300, 180, 90, 80, 0, 0, 0
+  300, 300, 180, 90, 80, -Math.PI/8, 0, 0
 ));
 simulation._circles.push(new Segment(
   [
     {x: 300, y: 300},
-    {x: 480, y: 80},  
+    {x: 450, y: 120}, 
+    {x: 500, y: 100}
   ],
   [
-    4,
-    15
+    25,
+    8,
+    4
   ]
+));
+simulation._circles.push(new Circle(
+  500, 100, 20, 0, 0
+));
+simulation._circles.push(new Circle(
+  530, 100, 6, 0, 0
 ));
 simulation.draw();
 
